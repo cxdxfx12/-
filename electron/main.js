@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
+const pptxgen = require('pptxgenjs');
 
 // 判断是否是开发模式
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
@@ -231,8 +232,78 @@ ipcMain.handle('select-export-path', async (event, defaultName, filters) => {
     defaultPath: defaultName,
     filters: filters,
   });
-  
+
   return result;
+});
+
+// 导出 PPT
+ipcMain.handle('export-ppt', async (event, { imageDataUrl, title, pages, pageNames }) => {
+  try {
+    const result = await dialog.showSaveDialog(mainWindow, {
+      defaultPath: `${title || '报告'}.pptx`,
+      filters: [{ name: 'PowerPoint', extensions: ['pptx'] }],
+    });
+
+    if (result.canceled || !result.filePath) {
+      return { success: false, error: '用户取消' };
+    }
+
+    const pptx = new pptxgen();
+    pptx.defineLayout({ name: 'WIDE', width: '12.8', height: '7.2' });
+    pptx.layout = 'WIDE';
+
+    // 封面页
+    const slide1 = pptx.addSlide();
+    slide1.background = { color: '1890ff' };
+    slide1.addText(title || '报告', {
+      x: 1, y: 2.5, w: 10.8, h: 1.5,
+      fontSize: 40, bold: true, color: 'FFFFFF',
+      align: 'center', fontFace: 'Microsoft YaHei',
+    });
+    slide1.addText(new Date().toLocaleString('zh-CN'), {
+      x: 1, y: 4, w: 10.8, h: 0.6,
+      fontSize: 16, color: 'FFFFFF', align: 'center', fontFace: 'Microsoft YaHei',
+    });
+
+    // 将 base64 图片写入临时文件
+    const base64Data = imageDataUrl.replace(/^data:image\/png;base64,/, '');
+    const tmpDir = path.join(app.getPath('temp'), 'dataviz');
+    if (!fs.existsSync(tmpDir)) {
+      fs.mkdirSync(tmpDir, { recursive: true });
+    }
+    const tmpImagePath = path.join(tmpDir, `slide-${Date.now()}.png`);
+    fs.writeFileSync(tmpImagePath, Buffer.from(base64Data, 'base64'));
+
+    // 内容页
+    for (let i = 0; i < (pages || 1); i++) {
+      const slide = pptx.addSlide();
+      const pageName = pageNames?.[i] || `第${i + 1}页`;
+
+      slide.addText(pageName, {
+        x: 0.5, y: 0.2, w: 11.8, h: 0.5,
+        fontSize: 18, bold: true, color: '1890ff', fontFace: 'Microsoft YaHei',
+      });
+
+      if (i === 0) {
+        slide.addImage({ path: tmpImagePath, x: 0.5, y: 0.9, w: 11.8, h: 5.8 });
+      } else {
+        slide.addText('（请切换到对应页面后单独导出该页，或将各页图像插入此处）', {
+          x: 1, y: 2, w: 10.8, h: 2,
+          fontSize: 14, color: '999999', align: 'center', fontFace: 'Microsoft YaHei',
+        });
+      }
+    }
+
+    // 保存 PPT
+    await pptx.writeFile({ fileName: result.filePath });
+
+    // 清理临时文件
+    try { fs.unlinkSync(tmpImagePath); } catch {}
+
+    return { success: true, path: result.filePath };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 });
 
 // 应用启动

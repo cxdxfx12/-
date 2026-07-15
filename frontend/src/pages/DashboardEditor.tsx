@@ -31,7 +31,16 @@ import {
   FilterOutlined,
 } from '@ant-design/icons';
 import html2canvas from 'html2canvas';
-import pptxgen from 'pptxgenjs';
+import { generateHtmlExport } from '../utils/exportHtml';
+
+// Electron IPC 引用（仅 Electron 环境可用）
+const ipcRenderer = (() => {
+  try {
+    return (window as any).require('electron').ipcRenderer;
+  } catch {
+    return null;
+  }
+})();
 import { useAppStore, useAppActions } from '../store';
 import { PAGE_SIZE_DIMENSIONS } from '../constants';
 import type { Component, ChartType } from '../types';
@@ -379,146 +388,45 @@ const DashboardEditor: React.FC = () => {
           printWindow.document.close();
         }
       } else if (format === 'html') {
-        // HTML 导出：生成独立 HTML 文件
-        const imgData = canvas.toDataURL('image/png');
-        const reportTitle = currentReport?.title || '报告';
-        const pageName = currentReport?.pages.find(p => p.id === currentPageId)?.name || '第1页';
-        const htmlContent = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${reportTitle}</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Microsoft YaHei', 'PingFang SC', -apple-system, sans-serif;
-      background: #f0f2f5;
-      color: #333;
-      padding: 40px;
-    }
-    .report-container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .report-header {
-      text-align: center;
-      margin-bottom: 32px;
-      padding: 24px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    }
-    .report-header h1 { font-size: 28px; color: #1a1a1a; margin-bottom: 8px; }
-    .report-header .meta { font-size: 14px; color: #999; }
-    .report-header .meta span { margin: 0 12px; }
-    .page-section {
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-      padding: 24px;
-      margin-bottom: 24px;
-    }
-    .page-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #1890ff;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid #e8f0fe;
-    }
-    .page-content { text-align: center; }
-    .page-content img { max-width: 100%; height: auto; border-radius: 4px; }
-    .report-footer {
-      text-align: center;
-      padding: 16px;
-      font-size: 12px;
-      color: #999;
-    }
-    @media print {
-      body { background: #fff; padding: 0; }
-      .page-section { box-shadow: none; border-radius: 0; page-break-after: always; }
-      .page-section:last-child { page-break-after: auto; }
-    }
-  </style>
-</head>
-<body>
-  <div class="report-container">
-    <div class="report-header">
-      <h1>${reportTitle}</h1>
-      <div class="meta">
-        <span>📅 导出时间: ${new Date().toLocaleString('zh-CN')}</span>
-        <span>📄 页数: ${currentReport?.pages.length || 1}</span>
-        <span>📐 尺寸: ${currentReport?.pageSize || '16:9'}</span>
-      </div>
-    </div>
-    <div class="page-section">
-      <div class="page-title">${pageName}</div>
-      <div class="page-content">
-        <img src="${imgData}" alt="${reportTitle} - ${pageName}" />
-      </div>
-    </div>
-    <div class="report-footer">
-      © 2026 DataViz Desktop · 杭州喵喵至家网络有限公司
-    </div>
-  </div>
-</body>
-</html>`;
+        // HTML 导出：生成包含真实图表的独立 HTML 文件
+        if (!currentReport) {
+          message.warning('没有可导出的报告');
+          return;
+        }
+        const htmlContent = generateHtmlExport(currentReport, dataSets);
         const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${reportTitle}.html`;
+        a.download = `${currentReport.title || '报告'}.html`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } else if (format === 'ppt') {
-        // PPT 导出
-        const pptx = new pptxgen();
-        pptx.defineLayout({ name: 'WIDE', width: '12.8', height: '7.2' });
-        pptx.layout = 'WIDE';
-        const imgData = canvas.toDataURL('image/png');
-
-        // 封面页
-        const slide1 = pptx.addSlide();
-        slide1.background = { color: '1890ff' };
-        slide1.addText(currentReport?.title || '报告', {
-          x: 1, y: 2.5, w: 10.8, h: 1.5,
-          fontSize: 40, bold: true, color: 'FFFFFF',
-          align: 'center', fontFace: 'Microsoft YaHei',
-        });
-        slide1.addText(new Date().toLocaleString('zh-CN'), {
-          x: 1, y: 4, w: 10.8, h: 0.6,
-          fontSize: 16, color: 'FFFFFF', align: 'center', fontFace: 'Microsoft YaHei',
-        });
-
-        // 内容页（多页遍历）
-        for (let i = 0; i < (currentReport?.pages.length || 1); i++) {
-          const page = currentReport?.pages[i];
-          const slide = pptx.addSlide();
-          const pageName = page?.name || `第${i + 1}页`;
-
-          // 页面标题
-          slide.addText(pageName, {
-            x: 0.5, y: 0.2, w: 11.8, h: 0.5,
-            fontSize: 18, bold: true, color: '1890ff', fontFace: 'Microsoft YaHei',
-          });
-
-          // 当前页内容截图
-          if (i === 0) {
-            slide.addImage({ data: imgData, x: 0.5, y: 0.9, w: 11.8, h: 5.8 });
-          } else {
-            // 其他页面使用占位提示
-            slide.addText('（请切换到对应页面后单独导出该页，或将各页图像插入此处）', {
-              x: 1, y: 2, w: 10.8, h: 2,
-              fontSize: 14, color: '999999', align: 'center', fontFace: 'Microsoft YaHei',
-            });
-          }
+        // PPT 导出：通过 Electron IPC 调用主进程生成
+        if (!ipcRenderer) {
+          message.warning('PPT 导出仅在桌面应用中可用');
+          return;
         }
 
-        // 保存
-        await pptx.writeFile({ fileName: `${currentReport?.title || '报告'}.pptx` });
+        const imgData = canvas.toDataURL('image/png');
+        const pageNames = currentReport?.pages.map(p => p.name) || [];
+        const result = await ipcRenderer.invoke('export-ppt', {
+          imageDataUrl: imgData,
+          title: currentReport?.title || '报告',
+          pages: currentReport?.pages.length || 1,
+          pageNames,
+        });
+
+        if (!result.success) {
+          if (result.error !== '用户取消') {
+            message.error(`PPT 导出失败: ${result.error}`);
+          } else {
+            message.destroy('export');
+            return;
+          }
+        }
       }
 
       message.success({ content: `导出${formatLabel}成功`, key: 'export' });
