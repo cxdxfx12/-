@@ -1,0 +1,94 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+  padding: 40px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoIcon {
+  font-size: 32px;
+  color: #1890ff;
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section {
+  margin-bottom: 40px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.newCard,
+.templateCard,
+.recentCard {
+  height: 160px;
+  transition: all 0.3s ease;
+}
+
+.newCard:hover,
+.templateCard:hover,
+.recentCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  gap: 8px;
+}
+
+.cardIcon {
+  font-size: 36px;
+  color: #1890ff;
+  margin-bottom: 8px;
+}
+
+.cardDesc {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.recentInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.footer {
+  text-align: center;
+  padding-top: 40px;
+  border-top: 1px solid #e8e8e8;
+  margin-top: 40px;
+}
+
+.divider {
+  color: #d9d9d9;
+  margin: 0 8px;
+}

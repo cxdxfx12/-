@@ -1,0 +1,83 @@
+.container {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.header {
+  padding: 16px;
+  border-bottom: 1px solid #e8e8e8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hint {
+  font-size: 11px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 8px;
+}
+
+.card {
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fff;
+  user-select: none;
+}
+
+.card:hover {
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.card:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 8px;
+  text-align: center;
+  gap: 4px;
+}
+
+.icon {
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+
+.cardName {
+  font-size: 13px;
+}
+
+.desc {
+  font-size: 11px;
+}
+
+.dataList {
+  padding: 8px;
+}
+
+.dataCard {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+}
+
+.dataInfo {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}

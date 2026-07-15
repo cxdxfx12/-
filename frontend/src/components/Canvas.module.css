@@ -1,0 +1,189 @@
+.canvasContainer {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.canvasContainer.dragOver {
+  background: #e6f7ff;
+}
+
+.canvas {
+  background: #fff;
+  position: relative;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+  transform-origin: center center;
+}
+
+.empty {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.emptyInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  color: #bfbfbf;
+}
+
+.emptyTitle {
+  font-size: 18px !important;
+  color: #8c8c8c !important;
+}
+
+.emptyDesc {
+  font-size: 14px;
+}
+
+.component {
+  position: absolute;
+  background: #fff;
+  cursor: move;
+  user-select: none;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.component:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+}
+
+.component.selected {
+  z-index: 1000;
+}
+
+.selectionBorder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px solid #1890ff;
+  border-radius: 6px;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.resizeHandle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #1890ff;
+  border: 1px solid #fff;
+  z-index: 10;
+}
+
+.resizeHandle.nw { top: -4px; left: -4px; cursor: nw-resize; }
+.resizeHandle.ne { top: -4px; right: -4px; cursor: ne-resize; }
+.resizeHandle.sw { bottom: -4px; left: -4px; cursor: sw-resize; }
+.resizeHandle.se { bottom: -4px; right: -4px; cursor: se-resize; }
+.resizeHandle.n { top: -4px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
+.resizeHandle.s { bottom: -4px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
+.resizeHandle.w { left: -4px; top: 50%; transform: translateY(-50%); cursor: w-resize; }
+.resizeHandle.e { right: -4px; top: 50%; transform: translateY(-50%); cursor: e-resize; }
+
+.grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.dropOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(24, 144, 255, 0.08);
+  border: 2px dashed #1890ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.dropText {
+  font-size: 20px !important;
+  color: #1890ff !important;
+  font-weight: 500;
+}
+
+.textComponent {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardComponent {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  box-sizing: border-box;
+}
+
+.cardTitle {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.cardValue {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+/* 对齐辅助线 */
+.alignLineV {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #ff4d4f;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.alignLineH {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #ff4d4f;
+  z-index: 1000;
+  pointer-events: none;
+}
