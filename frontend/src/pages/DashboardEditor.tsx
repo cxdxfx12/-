@@ -512,6 +512,24 @@ const DashboardEditor: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedComponentId, undo, redo, copyComponent, pasteComponent, removeComponent]);
 
+  // 关闭窗口前提示保存
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // 获取最新状态
+      const state = useAppStore.getState();
+      if (!state.isSaved && state.currentReport) {
+        // 先尝试自动保存
+        state.actions.saveReport();
+        e.preventDefault();
+        e.returnValue = '您有未保存的更改，确定要离开吗？';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
   return (
     <Layout className={styles.container}>
       {/* 顶部工具栏 */}
@@ -539,6 +557,7 @@ const DashboardEditor: React.FC = () => {
           {!isSaved && <span className={styles.unsaved}>未保存</span>}
         </div>
 
+        {editMode === 'edit' && (
         <div className={styles.headerCenter}>
           <Space>
             <Tooltip title="添加折线图">
@@ -606,6 +625,7 @@ const DashboardEditor: React.FC = () => {
             </Tooltip>
           </Space>
         </div>
+        )}
 
         <div className={styles.headerRight}>
           <Space>
@@ -649,7 +669,8 @@ const DashboardEditor: React.FC = () => {
       </Header>
 
       <Layout>
-        {/* 左侧组件面板 */}
+        {/* 左侧组件面板 - 仅编辑模式 */}
+        {editMode === 'edit' && (
         <Sider width={240} className={styles.siderLeft}>
           <ComponentPanel
             onAddChart={handleAddChart}
@@ -661,10 +682,12 @@ const DashboardEditor: React.FC = () => {
             dataSets={dataSets}
           />
         </Sider>
+        )}
 
         {/* 中间画布 */}
         <Content className={styles.content}>
-          {/* 页面标签栏 */}
+          {/* 页面标签栏 - 仅编辑模式 */}
+          {editMode === 'edit' && (
           <div className={styles.pageTabs}>
             <Tabs
               type="editable-card"
@@ -699,6 +722,7 @@ const DashboardEditor: React.FC = () => {
               style={{ marginRight: 8 }}
             />
           </div>
+          )}
           <div className={styles.canvasWrapper}>
             <Canvas
               ref={canvasRef}
@@ -714,7 +738,8 @@ const DashboardEditor: React.FC = () => {
           </div>
         </Content>
 
-        {/* 右侧属性面板 */}
+        {/* 右侧属性面板 - 仅编辑模式 */}
+        {editMode === 'edit' && (
         <Sider width={280} className={styles.siderRight}>
           <PropertyPanel
             component={currentReport?.components.find((c) => c.id === selectedComponentId)}
@@ -726,6 +751,7 @@ const DashboardEditor: React.FC = () => {
             dataSets={dataSets}
           />
         </Sider>
+        )}
       </Layout>
       <TemplateModal open={templateModalOpen} onClose={() => setTemplateModalOpen(false)} />
     </Layout>

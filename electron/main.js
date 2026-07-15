@@ -72,6 +72,12 @@ function createWindow() {
     },
   });
 
+  // 关闭窗口前提示
+  mainWindow.on('close', (e) => {
+    // 让渲染进程的 beforeunload 事件处理
+    mainWindow.webContents.send('app-closing');
+  });
+
   // 加载页面
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
